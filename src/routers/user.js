@@ -18,6 +18,13 @@ const router = new express.Router()
 // The name of the bucket that you have created
 // const BUCKET_NAME = 'accm-task-manager-app-images';
 
+// index get test endpoint
+router.post('', (req, res) => {
+    
+    res.status(200).send('index GET endpoint is working')
+    
+})
+
 
 // create users
 router.post('/users', async (req, res) => {
