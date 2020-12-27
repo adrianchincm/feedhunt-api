@@ -19,10 +19,8 @@ const router = new express.Router()
 // const BUCKET_NAME = 'accm-task-manager-app-images';
 
 // index get test endpoint
-router.post('', (req, res) => {
-    
+router.get('', (req, res) => {
     res.status(200).send('index GET endpoint is working')
-    
 })
 
 
