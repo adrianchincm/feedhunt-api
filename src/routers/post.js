@@ -71,16 +71,21 @@ router.get('/posts/following', auth, async (req, res) => {
 
 router.get('/posts/user/:username', auth, async (req, res) => {
     const username = req.params.username
-
+    // , {$unset:{"following":""}}
     try {        
-        const user = await User.findOne({ username })
-        console.log(user)
+        const user = await User.findOne({ username })        
         const post = await Post.find({ owner: user._id })
 
         if (!post) {
             return res.status(404).send()
         }
-        res.status(200).send(post)
+
+        const userProfile = {
+            user,
+            posts: post
+        }
+        
+        res.status(200).send(userProfile)
         
     } catch (e) {
         res.status(500).send(e)
