@@ -21,7 +21,7 @@ router.post('/posts', auth, async (req, res) => {
 // GET /posts?completed=true
 // GET /posts?limit=10&skip=0
 // GET /posts?sortBy=createdAt_desc
-router.get('/posts', auth, async (req, res) => {
+router.get('/posts/me', auth, async (req, res) => {
     const match = {}
     const sort = { 'createdAt': -1 }
 
@@ -32,8 +32,33 @@ router.get('/posts', auth, async (req, res) => {
 
     try {
         await Post.find({ owner: req.user._id }).sort(sort).
-            populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt").
+            populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following").
             exec(function (err, post) {
+                    if (err) return handleError(err);                    
+                    res.status(200).send(post)    
+                });    
+        
+    } catch (e) {
+        res.status(500).send(e)
+    }
+})
+
+router.get('/posts/following', auth, async (req, res) => {
+    const match = {}
+    // default : load latest posts first
+    const sort = { 'createdAt': -1 }
+
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split('_')        
+        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1 
+    }    
+
+    const followingWithUser = req.user.following.concat(req.user._id)    
+
+    try {
+        await Post.find({owner: {"$in": followingWithUser}}).sort(sort).
+            populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt").
+            exec(function (err, post) {                
                     if (err) return handleError(err);                    
                     res.status(200).send(post)    
                 });    
