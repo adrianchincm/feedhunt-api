@@ -1,5 +1,6 @@
 const express = require('express')
 const Post = require('../models/post')
+const User = require('../models/user')
 const auth = require('../middleware/auth')
 const router = new express.Router()
 
@@ -68,11 +69,13 @@ router.get('/posts/following', auth, async (req, res) => {
     }
 })
 
-router.get('/posts/:id', auth, async (req, res) => {
-    const _id = req.params.id
+router.get('/posts/:username', auth, async (req, res) => {
+    const username = req.params.username
 
     try {        
-        const post = await Post.findOne({ _id, owner: req.user._id})
+        const user = await User.findOne({ username })
+        console.log(user)
+        const post = await Post.find({ owner: user._id })
 
         if (!post) {
             return res.status(404).send()
