@@ -69,7 +69,7 @@ router.get('/posts/following', auth, async (req, res) => {
     }
 })
 
-router.get('/posts/:username', auth, async (req, res) => {
+router.get('/posts/user/:username', auth, async (req, res) => {
     const username = req.params.username
 
     try {        
