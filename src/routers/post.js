@@ -23,25 +23,21 @@ router.post('/posts', auth, async (req, res) => {
 // GET /posts?sortBy=createdAt_desc
 router.get('/posts', auth, async (req, res) => {
     const match = {}
-    const sort = {}
+    const sort = { 'createdAt': -1 }
 
     if (req.query.sortBy) {
-        const parts = req.query.sortBy.split(':')
+        const parts = req.query.sortBy.split('_')        
         sort[parts[0]] = parts[1] === 'desc' ? -1 : 1 
-    }
+    }    
 
     try {
-        await req.user.populate({
-            path: 'posts',
-            match,
-            options: {
-                limit: parseInt(req.query.limit),
-                skip: parseInt(req.query.skip),
-                sort
-            }
-        }).execPopulate()
+        await Post.find({ owner: req.user._id }).sort(sort).
+            populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt").
+            exec(function (err, post) {
+                    if (err) return handleError(err);                    
+                    res.status(200).send(post)    
+                });    
         
-        res.status(200).send(req.user.posts)
     } catch (e) {
         res.status(500).send(e)
     }

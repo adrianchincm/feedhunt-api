@@ -23,6 +23,10 @@ const userSchema = new mongoose.Schema({
         unique: true,
         required: true,
         trim: true
+    },
+    displayname: {
+        type: String,
+        trim: true
     },    
     password: {
         type: String,
@@ -42,11 +46,17 @@ const userSchema = new mongoose.Schema({
         }
     }],
     avatar: {
-        type: Buffer
+        type: String,
+        trim: true
     }
 }, {
     timestamps: true
 })
+
+userSchema.pre('save', function (next) {
+    this.displayname = this.get('username');
+    next();
+});
 
 userSchema.virtual('posts', {
     ref: 'Post',
@@ -59,8 +69,7 @@ userSchema.methods.toJSON = function () {
     const userObject = user.toObject()
 
     delete userObject.password
-    delete userObject.tokens
-    delete userObject.avatar
+    delete userObject.tokens    
     delete userObject.__v
 
     return userObject

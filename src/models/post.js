@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const User = require('./user')
 
 const postSchema = new mongoose.Schema({
     content: {
@@ -16,7 +17,7 @@ const postSchema = new mongoose.Schema({
         ref: 'User'
     }
 }, {
-    timestamps: true
+    timestamps: true,    
 })
 
 postSchema.methods.toJSON = function () {
