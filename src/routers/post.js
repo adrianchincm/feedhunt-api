@@ -71,23 +71,41 @@ router.get('/posts/following', auth, async (req, res) => {
 
 router.get('/posts/user/:username', auth, async (req, res) => {
     const username = req.params.username
-    // , {$unset:{"following":""}}
-    try {        
+
+    try {
+        let postCount
+        let followerCount   
         const user = await User.findOne({ username })        
         const post = await Post.find({ owner: user._id })
+        await Post.find({ owner: user._id }).countDocuments(function(err, count) {
+            if (err) return res.status(404).send()
+            postCount = count
+          });
+   
+        const followers = await User.find({ following: user._id }).countDocuments(function(err, count) {
+            if (err) return res.status(404).send()
+            followerCount = count
+        });  
+        const following = user.following.length  
 
         if (!post) {
             return res.status(404).send()
         }
+        
+        user.set('following', undefined, {strict: false} );
 
         const userProfile = {
             user,
-            posts: post
+            posts: post,
+            totalPosts: postCount,
+            following,
+            followers
         }
         
         res.status(200).send(userProfile)
         
     } catch (e) {
+        
         res.status(500).send(e)
     }
 })
