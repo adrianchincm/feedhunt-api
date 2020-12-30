@@ -81,22 +81,22 @@ router.get('/posts/user/:username', auth, async (req, res) => {
         await Post.find({ owner: user._id }).
         populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following").
         exec(function (err, post) {                
-                if (err) return res.status(404).send(new Error('Can\'t populate posts\' owner fields'))                    
+                if (err) return console.log('Can\'t populate posts\' owner fields')
                 posts = post
             });    
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
-            if (err) return res.status(404).send(new Error('Can\'t find posts count'))
+            if (err) return console.log(new Error('Can\'t find posts count'))
             postCount = count
           });
    
         const followers = await User.find({ following: user._id }).countDocuments(function(err, count) {
-            if (err) return res.status(404).send(new Error('Can\'t find followers count'))
+            if (err) return console.log('Can\'t find followers count')
             followerCount = count
         });  
         const following = user.following.length  
 
         if (!posts) {
-            return res.status(404).send(new Error('Error getting posts'))
+            return console.log('Error getting posts')
         }
         
         user.set('following', undefined, {strict: false} );
