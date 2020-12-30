@@ -79,6 +79,19 @@ router.get('/users/me', auth, async (req, res) => {
     res.send(req.user)
 })
 
+router.post('/users/follow/:username', auth, async (req, res) => {
+    
+    const user = await User.findOne({username: req.params.username})    
+    req.user.following.push(user._id)
+        
+    try {
+        await req.user.save()
+        res.status(200).send({success: true})
+    } catch (e) {
+        res.status(404).send(e)
+    }
+})
+
 // router.patch('/users/me', auth, async (req, res) => {
 //     const updates = Object.keys(req.body)
 //     const allowedUpdates = ['name', 'email', 'password', 'age']
