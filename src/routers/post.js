@@ -76,7 +76,12 @@ router.get('/posts/user/:username', auth, async (req, res) => {
         let postCount
         let followerCount   
         const user = await User.findOne({ username })        
-        const post = await Post.find({ owner: user._id })
+        const post = await Post.find({ owner: user._id }).
+        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt").
+        exec(function (err, post) {                
+                if (err) return handleError(err);                    
+                res.status(200).send(post)    
+            });    
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
             if (err) return res.status(404).send()
             postCount = count
