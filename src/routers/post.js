@@ -74,16 +74,16 @@ router.get('/posts/user/:username', auth, async (req, res) => {
 
     try {
         let postCount
-        let followerCount
-        let posts   
+        let followerCount        
         const user = await User.findOne({ username })        
 
-        await Post.find({ owner: user._id }).
-        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following").
-        exec(function (err, post) {                
-                if (err) return res.send({error : 'Can\'t populate posts\' owner fields'}).status(404)
-                posts = post
-            });    
+        const posts = await Post.find({ owner: user._id }).
+        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")
+        // .exec(function (err, post) {                
+        //         if (err) return res.send({error : 'Can\'t populate posts\' owner fields'}).status(404)
+                
+        //         posts = post
+        //     }).then();    
 
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
                 if (err) return res.send({error : 'Can\'t find posts count'}).status(404)
