@@ -74,13 +74,15 @@ router.get('/posts/user/:username', auth, async (req, res) => {
 
     try {
         let postCount
-        let followerCount   
+        let followerCount
+        let posts   
         const user = await User.findOne({ username })        
-        const post = await Post.find({ owner: user._id }).
-        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt").
+
+        await Post.find({ owner: user._id }).
+        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following").
         exec(function (err, post) {                
-                if (err) return handleError(err);                    
-                res.status(200).send(post)    
+                if (err) return res.status(404).send()                    
+                posts = post
             });    
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
             if (err) return res.status(404).send()
@@ -93,7 +95,7 @@ router.get('/posts/user/:username', auth, async (req, res) => {
         });  
         const following = user.following.length  
 
-        if (!post) {
+        if (!posts) {
             return res.status(404).send()
         }
         
@@ -101,7 +103,7 @@ router.get('/posts/user/:username', auth, async (req, res) => {
 
         const userProfile = {
             user,
-            posts: post,
+            posts,
             totalPosts: postCount,
             following,
             followers
