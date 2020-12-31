@@ -7,16 +7,16 @@ const AWS = require('aws-sdk');
 const router = new express.Router()
 
 // Enter copied or downloaded access ID and secret key here
-// const ID = process.env.AWS_KEY_ID;
-// const SECRET = process.env.AWS_SECRET_KEY;
+const ID = process.env.AWS_KEY_ID;
+const SECRET = process.env.AWS_SECRET_KEY;
 
-// const s3 = new AWS.S3({
-//     accessKeyId: ID,
-//     secretAccessKey: SECRET
-// });
+const s3 = new AWS.S3({
+    accessKeyId: ID,
+    secretAccessKey: SECRET
+});
 
 // The name of the bucket that you have created
-// const BUCKET_NAME = 'accm-task-manager-app-images';
+const BUCKET_NAME = 'feedhunt-public';
 
 // index get test endpoint
 router.get('', (req, res) => {
@@ -136,41 +136,45 @@ router.post('/users/unfollow/:username', auth, async (req, res) => {
 //     }
 // })
 
-// const upload = multer({
-//     limits: {
-//         fileSize: 1000000
-//     },
-//     fileFilter(req, file, cb) {
-//         if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-//             return cb(new Error('Please upload jpg, jpeg or png files'))
-//         }
-//         cb(undefined, true)
-//     }
-// })
+const upload = multer({
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, cb) {
+        
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('Please upload jpg, jpeg or png files'))
+        }
+        cb(undefined, true)
+    }
+})
 
-// router.post('/users/me/avatar', auth, upload.single('avatar'), async (req, res) => {
-//     const buffer = await sharp(req.file.buffer).resize({ width: 250, height: 250 }).png().toBuffer()
+router.post('/upload', auth, upload.single('image'), async (req, res) => {
+    console.log(req.body.content)
+    // const buffer = await sharp(req.file.buffer).resize({ width: 500 }).png().toBuffer()
 
-//     const params = {
-//         Bucket: BUCKET_NAME,
-//         Key: 'images/test.png', // File name you want to save as in S3
-//         Body: buffer
-//     };
+    // const params = {
+    //     Bucket: BUCKET_NAME,
+    //     Key: `feedhunt-images/${req.file.originalname}.png`, // File name you want to save as in S3
+    //     Body: buffer
+    // };
 
-//     // Uploading files to the bucket
-//     s3.upload(params, function(err, data) {
-//         if (err) {
-//             throw err;
-//         }
-//         console.log(`File uploaded successfully. ${data.Location}`);
-//     });
+    // // Uploading files to the bucket
+    // s3.upload(params, function(err, data) {
+    //     if (err) {
+    //         throw err;
+    //     }
 
-//     req.user.avatar = buffer
-//     await req.user.save()
-//     res.send()
-// }, (error, req, res, next) => {
-//     res.status(400).send({ error: error.message })
-// })
+    //     res.status(201).send(data.Location)
+    //     // console.log(`File uploaded successfully. ${data.Location}`);
+    // });
+
+    // req.user.avatar = buffer
+    // await req.user.save()
+    // res.send()
+}, (error, req, res, next) => {
+    res.status(400).send({ error: error.message })
+})
 
 // router.delete('/users/me/avatar', auth, async (req, res) => {
 //     req.user.avatar = undefined
