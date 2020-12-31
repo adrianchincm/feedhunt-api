@@ -6,17 +6,8 @@ const multer = require('multer')
 const sharp = require('sharp')
 const AWS = require('aws-sdk');
 const router = new express.Router()
-
-const ID = process.env.AWS_KEY_ID;
-const SECRET = process.env.AWS_SECRET_KEY;
-
-const s3 = new AWS.S3({
-    accessKeyId: ID,
-    secretAccessKey: SECRET
-});
-
-// The name of the bucket that you have created
-const BUCKET_NAME = 'feedhunt-public';
+const uploadImage = require('../utility/upload')
+const upload = require('../middleware/multer')
 
 router.post('/posts', auth, upload.single('image'), async (req, res) => {
     let postWithImage
@@ -53,8 +44,6 @@ router.post('/posts', auth, upload.single('image'), async (req, res) => {
 // GET /posts?completed=true
 // GET /posts?limit=10&skip=0
 // GET /posts?sortBy=createdAt_desc
-
-
 router.get('/posts/me', auth, async (req, res) => {
     const match = {}
     const sort = { 'createdAt': -1 }
@@ -111,12 +100,7 @@ router.get('/posts/user/:username', auth, async (req, res) => {
         const user = await User.findOne({ username })        
 
         const posts = await Post.find({ owner: user._id }).
-        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")
-        // .exec(function (err, post) {                
-        //         if (err) return res.send({error : 'Can\'t populate posts\' owner fields'}).status(404)
-                
-        //         posts = post
-        //     }).then();    
+        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")        
 
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
                 if (err) return res.send({error : 'Can\'t find posts count'}).status(404)
@@ -191,32 +175,7 @@ router.delete('/posts/:id', auth, async (req, res) => {
 
 //
 
-const upload = multer({
-    limits: {
-        fileSize: 1000000
-    },
-    fileFilter(req, file, cb) {
-        
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(new Error('Please upload jpg, jpeg or png files'))
-        }
-        cb(undefined, true)
-    }
-})
 
-const uploadImage = async (req) => {
-    const buffer = await sharp(req.file.buffer).resize({ width: 500 }).png().toBuffer()
-    const timestamp = Date.now()
-    const params = {
-        Bucket: BUCKET_NAME,
-        Key: `feedhunt-images/${req.file.originalname}-${timestamp}.png`, // File name you want to save as in S3
-        Body: buffer
-    };
-
-    // Uploading files to the bucket
-    const uploaded = s3.upload(params).promise()
-    return uploaded
-}
 
 
 // router.post('/upload', auth, upload.single('image'), async (req, res) => {

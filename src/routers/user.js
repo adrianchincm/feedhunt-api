@@ -1,28 +1,7 @@
 const express = require('express')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
-const multer = require('multer')
-const sharp = require('sharp')
-const AWS = require('aws-sdk');
 const router = new express.Router()
-
-// Enter copied or downloaded access ID and secret key here
-const ID = process.env.AWS_KEY_ID;
-const SECRET = process.env.AWS_SECRET_KEY;
-
-const s3 = new AWS.S3({
-    accessKeyId: ID,
-    secretAccessKey: SECRET
-});
-
-// The name of the bucket that you have created
-const BUCKET_NAME = 'feedhunt-public';
-
-// index get test endpoint
-router.get('', (req, res) => {
-    res.status(200).send('index GET endpoint is working')
-})
-
 
 // create users
 router.post('/users', async (req, res) => {
