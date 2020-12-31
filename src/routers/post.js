@@ -92,14 +92,20 @@ router.get('/posts/following', auth, async (req, res) => {
 })
 
 router.get('/posts/user/:username', auth, async (req, res) => {
+    const sort = { 'createdAt': -1 }
     const username = req.params.username
+
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split('_')        
+        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1 
+    }   
 
     try {
         let postCount
         let followerCount        
         const user = await User.findOne({ username })        
 
-        const posts = await Post.find({ owner: user._id }).
+        const posts = await Post.find({ owner: user._id }).sort(sort).
         populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")        
 
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
