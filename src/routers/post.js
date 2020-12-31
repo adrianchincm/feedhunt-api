@@ -2,19 +2,50 @@ const express = require('express')
 const Post = require('../models/post')
 const User = require('../models/user')
 const auth = require('../middleware/auth')
+const multer = require('multer')
+const sharp = require('sharp')
+const AWS = require('aws-sdk');
 const router = new express.Router()
 
-router.post('/posts', auth, async (req, res) => {
-    
-    const post = new Post({
-        ...req.body,
+const ID = process.env.AWS_KEY_ID;
+const SECRET = process.env.AWS_SECRET_KEY;
+
+const s3 = new AWS.S3({
+    accessKeyId: ID,
+    secretAccessKey: SECRET
+});
+
+// The name of the bucket that you have created
+const BUCKET_NAME = 'feedhunt-public';
+
+router.post('/posts', auth, upload.single('image'), async (req, res) => {
+    let postWithImage
+    let post = new Post({
+        content: req.body.content,
         owner: req.user._id
     })
 
+    if (req.file) {
+        await uploadImage(req)
+        .then(result => {                  
+            postWithImage = new Post({
+                content: req.body.content,
+                owner: req.user._id,
+                imageURL: result.Location
+            })            
+        }).catch(error => res.status(500).send(error))                                    
+    } 
+    
     try {
-        await post.save()
-        res.status(201).send(post)
+        if (postWithImage) {
+            await postWithImage.save() 
+            res.status(201).send(postWithImage)
+        } else {
+            await post.save() 
+            res.status(201).send(post)
+        }        
     } catch (e) {
+        console.log(e)
         res.status(500).send(e)
     }
 })
@@ -22,6 +53,8 @@ router.post('/posts', auth, async (req, res) => {
 // GET /posts?completed=true
 // GET /posts?limit=10&skip=0
 // GET /posts?sortBy=createdAt_desc
+
+
 router.get('/posts/me', auth, async (req, res) => {
     const match = {}
     const sort = { 'createdAt': -1 }
@@ -155,5 +188,48 @@ router.delete('/posts/:id', auth, async (req, res) => {
         res.status(500).send()
     }
 })
+
+//
+
+const upload = multer({
+    limits: {
+        fileSize: 1000000
+    },
+    fileFilter(req, file, cb) {
+        
+        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+            return cb(new Error('Please upload jpg, jpeg or png files'))
+        }
+        cb(undefined, true)
+    }
+})
+
+const uploadImage = async (req) => {
+    const buffer = await sharp(req.file.buffer).resize({ width: 500 }).png().toBuffer()
+    const timestamp = Date.now()
+    const params = {
+        Bucket: BUCKET_NAME,
+        Key: `feedhunt-images/${req.file.originalname}-${timestamp}.png`, // File name you want to save as in S3
+        Body: buffer
+    };
+
+    // Uploading files to the bucket
+    const uploaded = s3.upload(params).promise()
+    return uploaded
+}
+
+
+// router.post('/upload', auth, upload.single('image'), async (req, res) => {
+//     console.log(req.body.content)
+    
+//     await uploadImage(req).then(result =>
+//         res.send(result)
+//     )        
+    
+// }, (error, req, res, next) => {
+//     res.status(400).send({ error: error.message })
+// })
+
+
 
 module.exports = router

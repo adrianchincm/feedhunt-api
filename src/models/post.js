@@ -7,7 +7,7 @@ const postSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    image: {
+    imageURL: {
         type: String,        
         trim: true,
     },
@@ -15,7 +15,7 @@ const postSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref: 'User'
-    }
+    },  
 }, {
     timestamps: true,    
 })
