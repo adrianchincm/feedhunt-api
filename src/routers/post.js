@@ -10,7 +10,8 @@ router.post('/posts', auth, upload.single('image'), async (req, res) => {
     let postWithImage
     let post = new Post({
         content: req.body.content,
-        owner: req.user._id
+        owner: req.user._id,
+        products: req.body.products
     })
 
     if (req.file) {
@@ -19,6 +20,7 @@ router.post('/posts', auth, upload.single('image'), async (req, res) => {
             postWithImage = new Post({
                 content: req.body.content,
                 owner: req.user._id,
+                products: req.body.products,
                 imageURL: result.Location
             })            
         }).catch(error => res.status(500).send(error))                                    
@@ -51,9 +53,10 @@ router.get('/posts/me', auth, async (req, res) => {
     }    
 
     try {
-        await Post.find({ owner: req.user._id }).sort(sort).
-            populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following").
-            exec(function (err, post) {
+        await Post.find({ owner: req.user._id }).sort(sort)
+            .populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")
+            .populate('products',"-_id -__v -createdAt -updatedAt -following")
+            .exec(function (err, post) {
                     if (err) return handleError(err);                    
                     res.status(200).send(post)    
                 });    
@@ -76,9 +79,10 @@ router.get('/posts/following', auth, async (req, res) => {
     const followingWithUser = req.user.following.concat(req.user._id)    
 
     try {
-        await Post.find({owner: {"$in": followingWithUser}}).sort(sort).
-            populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt").
-            exec(function (err, post) {                
+        await Post.find({owner: {"$in": followingWithUser}}).sort(sort)
+            .populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt")
+            .populate('products',"-_id -__v -createdAt -updatedAt -following")
+            .exec(function (err, post) {                
                     if (err) return handleError(err);                    
                     res.status(200).send(post)    
                 });    
@@ -102,8 +106,9 @@ router.get('/posts/user/:username', auth, async (req, res) => {
         let followerCount        
         const user = await User.findOne({ username })        
 
-        const posts = await Post.find({ owner: user._id }).sort(sort).
-        populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")        
+        const posts = await Post.find({ owner: user._id }).sort(sort)
+            .populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")
+            .populate('products',"-_id -__v -createdAt -updatedAt -following")        
 
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
                 if (err) return res.send({error : 'Can\'t find posts count'}).status(404)
