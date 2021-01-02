@@ -72,7 +72,7 @@ router.get('/cart', auth, async (req, res) => {
             populate: {
               path: 'owner',
               model: 'User',
-              select: "username"
+            select: "username avatar"
             } 
          })        
 
