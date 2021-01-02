@@ -9,6 +9,7 @@ const upload = require('../middleware/multer')
 router.post('/cart', auth, async (req, res) => {    
     const productId = req.body.product
     const quantity = req.body.quantity
+    const action = req.body.action // increment, decrement, set
     
     try {
         let cart = await Cart.findOne({ owner: req.user._id });        
@@ -17,21 +18,33 @@ router.post('/cart', auth, async (req, res) => {
         if (!product) {
             return res.status(400).send({ error: 'Invalid product' })
         }
-
-        const total = quantity * product.price        
-
         if (cart) {
             let itemIndex = cart.items.findIndex(p => p.product == productId);
-            console.log(itemIndex)
-            if (itemIndex > -1) {                
-                let productItem = cart.items[itemIndex]
-                productItem.quantity = quantity
-                productItem.total = (quantity * product.price).toFixed(2)
+            let productItem = cart.items[itemIndex]
 
-                cart.items[itemIndex] = productItem
-              } else {                
+            if (itemIndex > -1) {  
+                switch (action) {
+                    case 'increment': {
+                        productItem.quantity = productItem.quantity + quantity
+                        break;
+                    }
+                    case 'decrement': {
+                        productItem.quantity = productItem.quantity - quantity
+                        break;
+                    }
+                    case 'set': {
+                        productItem.quantity = quantity
+                        break;
+                    }
+                    default: {
+                        productItem.quantity = quantity
+                    }
+                }                
+                productItem.total = (productItem.quantity * product.price).toFixed(2)
+                cart.items[itemIndex] = productItem                          
+            } else {                
                 cart.items.push({ product: productId, quantity, total })
-              }
+            }
 
               cart.save()
               res.status(201).send(cart)
