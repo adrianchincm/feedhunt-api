@@ -55,7 +55,7 @@ router.get('/posts/me', auth, async (req, res) => {
     try {
         await Post.find({ owner: req.user._id }).sort(sort)
             .populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")
-            .populate('products',"-_id -__v -createdAt -updatedAt -following")
+            .populate('products',"-__v -createdAt -updatedAt -following")
             .exec(function (err, post) {
                     if (err) return handleError(err);                    
                     res.status(200).send(post)    
@@ -81,7 +81,7 @@ router.get('/posts/following', auth, async (req, res) => {
     try {
         await Post.find({owner: {"$in": followingWithUser}}).sort(sort)
             .populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt")
-            .populate('products',"-_id -__v -createdAt -updatedAt -following")
+            .populate('products',"-__v -createdAt -updatedAt -following")
             .exec(function (err, post) {                
                     if (err) return handleError(err);                    
                     res.status(200).send(post)    
@@ -108,7 +108,7 @@ router.get('/posts/user/:username', auth, async (req, res) => {
 
         const posts = await Post.find({ owner: user._id }).sort(sort)
             .populate('owner',"-_id -__v -password -email -tokens -createdAt -updatedAt -following")
-            .populate('products',"-_id -__v -createdAt -updatedAt -following")        
+            .populate('products',"-__v -createdAt -updatedAt -following")        
 
         await Post.find({ owner: user._id }).countDocuments(function(err, count) {
                 if (err) return res.send({error : 'Can\'t find posts count'}).status(404)
