@@ -18,9 +18,10 @@ router.post('/cart', auth, async (req, res) => {
         if (!product) {
             return res.status(400).send({ error: 'Invalid product' })
         }
+
+        let productItem = cart.items[itemIndex]
         if (cart) {
-            let itemIndex = cart.items.findIndex(p => p.product == productId);
-            let productItem = cart.items[itemIndex]
+            let itemIndex = cart.items.findIndex(p => p.product == productId);            
 
             if (itemIndex > -1) {  
                 switch (action) {
@@ -42,7 +43,8 @@ router.post('/cart', auth, async (req, res) => {
                 }                
                 productItem.total = (productItem.quantity * product.price).toFixed(2)
                 cart.items[itemIndex] = productItem                          
-            } else {                
+            } else {               
+                const total = productItem.price * quantity
                 cart.items.push({ product: productId, quantity, total })
             }
 
