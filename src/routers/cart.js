@@ -50,6 +50,7 @@ router.post('/cart', auth, async (req, res) => {
               cart.save()
               res.status(201).send(cart)
         } else {                                   
+            const total = product.price * quantity
             const newCart = await Cart.create({
                 owner: req.user._id,
                 items: [{ product: productId, quantity, total }]
