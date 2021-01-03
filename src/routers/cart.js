@@ -12,8 +12,8 @@ router.post('/cart', auth, async (req, res) => {
     const action = req.body.action // increment, decrement, set
     
     try {
-        let cart = await Cart.findOne({ owner: req.user._id });        
-        const product = await Product.findOne({ _id: productId})
+        let cart = await Cart.findOne({ owner: req.user._id })     
+        const product = await (await Product.findOne({ _id: productId}))
 
         if (!product) {
             return res.status(400).send({ error: 'Invalid product' })
@@ -48,7 +48,18 @@ router.post('/cart', auth, async (req, res) => {
             }
 
               cart.save()
-              res.status(201).send(cart)
+
+              let newCart = await Cart.findOne({ owner: req.user._id }).populate('items.product', "-_id -__v -createdAt -updatedAt")
+              .populate({ 
+                  path: 'items.product',
+                  populate: {
+                    path: 'owner',
+                    model: 'User',
+                    select: "username avatar"
+                  } 
+               })   ; 
+
+              res.status(201).send(newCart)
         } else {                                   
             const total = product.price * quantity
             const newCart = await Cart.create({
@@ -88,7 +99,16 @@ router.delete('/cart/:itemId', auth, async (req, res) => {
     console.log(req.user._id)
 
     try {
-        let cart = await Cart.findOne({ owner: req.user._id })        
+        let cart = await Cart.findOne({ owner: req.user._id })
+        .populate('items.product', "-_id -__v -createdAt -updatedAt")
+        .populate({ 
+            path: 'items.product',
+            populate: {
+              path: 'owner',
+              model: 'User',
+              select: "username avatar"
+            } 
+         })          
 
         if (!cart) {
             return res.status(404).send({ error: 'Cart does not exist'})
@@ -102,7 +122,9 @@ router.delete('/cart/:itemId', auth, async (req, res) => {
         
         cart.items.splice(itemIndex, 1)
         
-        cart.save()                          
+        cart.save()
+        
+        cart
 
         res.status(200).send(cart)
     } catch (e) {
