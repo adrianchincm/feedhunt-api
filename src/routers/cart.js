@@ -127,12 +127,11 @@ router.delete('/cart/:itemId', auth, async (req, res) => {
         if (itemIndex <= -1) {
             return res.status(404).send({ error: 'Item does not exist'})
         }        
+
+        cart.grandTotal = cart.grandTotal - cart.items[itemIndex].total
+        cart.items.splice(itemIndex, 1)        
         
-        cart.items.splice(itemIndex, 1)
-        
-        cart.save()
-        
-        cart
+        await cart.save()        
 
         res.status(200).send(cart)
     } catch (e) {
