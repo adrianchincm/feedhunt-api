@@ -72,6 +72,7 @@ router.post('/cart', auth, async (req, res) => {
             const total = product.price * quantity
             const newCart = await Cart.create({
                 owner: req.user._id,
+                grandTotal: total,
                 items: [{ product: productId, quantity, total }]
               });
             res.status(201).send(newCart)
