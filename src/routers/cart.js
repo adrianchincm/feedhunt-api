@@ -83,8 +83,8 @@ router.get('/cart', auth, async (req, res) => {
     }
 })
 
-router.delete('/cart/:productId', auth, async (req, res) => {
-    const productId = req.params.productId
+router.delete('/cart/:itemId', auth, async (req, res) => {
+    const itemId = req.params.itemId
     console.log(req.user._id)
 
     try {
@@ -94,10 +94,10 @@ router.delete('/cart/:productId', auth, async (req, res) => {
             return res.status(404).send({ error: 'Cart does not exist'})
         }  
 
-        let itemIndex = cart.items.findIndex(p => p.product == productId);
+        let itemIndex = cart.items.findIndex(p => p._id == itemId);
     
         if (itemIndex <= -1) {
-            return res.status(404).send({ error: 'Product does not exist'})
+            return res.status(404).send({ error: 'Item does not exist'})
         }        
         
         cart.items.splice(itemIndex, 1)
