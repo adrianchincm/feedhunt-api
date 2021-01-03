@@ -45,9 +45,17 @@ router.post('/cart', auth, async (req, res) => {
             } else {               
                 const total = product.price * quantity
                 cart.items.push({ product: productId, quantity, total })
-            }
+            }              
+              
+              let total = 0
+              for (item of cart.items) {
+                total = total + item.total
+              }
 
-              cart.save()
+              console.log(total)
+              cart.grandTotal = total.toFixed(2)
+
+              await cart.save()
 
               let newCart = await Cart.findOne({ owner: req.user._id }).populate('items.product', "-_id -__v -createdAt -updatedAt")
               .populate({ 
