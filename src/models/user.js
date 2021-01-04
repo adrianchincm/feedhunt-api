@@ -57,7 +57,10 @@ const userSchema = new mongoose.Schema({
 })
 
 userSchema.pre('save', function (next) {
-    this.displayname = this.get('username');
+    const user = this
+    if (!user.displayname) {
+        this.displayname = this.get('username');
+    }    
     next();
 });
 
