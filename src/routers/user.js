@@ -88,23 +88,9 @@ router.post('/users/unfollow/:username', auth, async (req, res) => {
     }
 })
 
-// update user avatar
-router.post('/users/avatar', auth, upload.single('image'), async (req, res) => {
-    if (req.file) {
-        await uploadImage(req)
-        .then(result => {                  
-            req.user.avatar = result.Location
-                                 
-        }).catch(error => res.status(500).send(error)) 
-        
-        await req.user.save() 
-
-        res.send(req.user)   
-    }
-})
-
 // update user's displayname or password
-router.patch('/users/me', auth, async (req, res) => {
+router.patch('/users/me', auth, upload.single('image'), async (req, res) => {
+    console.log(req.body)
     const updates = Object.keys(req.body)
     
     const allowedUpdates = ['displayname', 'password']
@@ -115,7 +101,15 @@ router.patch('/users/me', auth, async (req, res) => {
     }
 
     try {
-        
+
+        if (req.file) {
+            await uploadImage(req)
+            .then(result => {                  
+                req.user.avatar = result.Location
+                                     
+            }).catch(error => res.status(500).send(error))             
+        }
+
         updates.forEach((update) => req.user[update] = req.body[update])    
         
         await req.user.save()
